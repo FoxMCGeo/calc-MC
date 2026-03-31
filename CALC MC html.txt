@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <title>Microcement Studio Pro</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --primary: #d4af37; /* Architectural Gold */
+            --primary-hover: #f1c40f;
+            --text-main: #e0e0e0;
+            --text-muted: #888888;
+            --border: #333333;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+        }
+
+        * { box-sizing: border-box; font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; }
+
+        body { background-color: var(--bg-dark); color: var(--text-main); padding-bottom: 100px; /* Space for sticky footer */ }
+
+        .header { background-color: #000; padding: 20px; text-align: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;}
+        .header h1 { color: var(--primary); font-size: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+
+        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+
+        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .card h2 { font-size: 16px; color: var(--primary); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; }
+        .form-group.full { width: 100%; margin-bottom: 15px; }
+
+        label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
+
+        input[type="number"], select {
+            width: 100%; padding: 14px; background-color: #2a2a2a; border: 1px solid var(--border);
+            border-radius: 8px; color: #fff; font-size: 16px; appearance: none;
+        }
+        input[type="number"]:focus, select:focus { outline: none; border-color: var(--primary); }
+
+        .settings-toggle { background: none; border: none; color: var(--text-muted); font-size: 14px; text-decoration: underline; margin-bottom: 15px; cursor: pointer; }
+        .settings-panel { display: none; background-color: #161616; padding: 15px; border-radius: 8px; border: 1px dashed var(--border); margin-bottom: 20px; }
+
+        .materials-box { background-color: #1a1a1a; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 3px solid var(--primary); display: none; }
+        .materials-box p { font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between;}
+        .materials-box p span { font-weight: bold; color: #fff; }
+
+        .warning { color: var(--danger); background-color: rgba(231, 76, 60, 0.1); padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 13px; display: none; line-height: 1.4; }
+
+        .sticky-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%; background-color: #000;
+            border-top: 1px solid var(--primary); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .sticky-footer .price-block { display: flex; flex-direction: column; }
+        .sticky-footer .price-title { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+        .sticky-footer .price-value { font-size: 24px; font-weight: bold; color: var(--primary); }
+        .sticky-footer .price-per-m2 { font-size: 12px; color: #fff; }
+
+        .btn-calc {
+            background-color: var(--primary); color: #000; border: none; padding: 14px 24px;
+            font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase;
+        }
+
+        /* Stats Row */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; display: none;}
+        .stat-card { background: #222; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .stat-card .val { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 4px;}
+        .stat-card .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase;}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Studio Calc v3.0</h1>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>Геометрия и Условия</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Площадь (м²)</label>
+                <input type="number" id="area" value="25" min="1" step="0.5">
+            </div>
+            <div class="form-group">
+                <label>Температура (°C)</label>
+                <input type="number" id="temp" value="20" min="5" max="45">
+            </div>
+        </div>
+
+        <div class="form-group full">
+            <label>Сложность поверхности</label>
+            <select id="complexity">
+                <option value="1.0">Простая (Гладкие стены, пол)</option>
+                <option value="1.2">Средняя (Углы, ниши, откосы)</option>
+                <option value="1.4">Сложная (Ступени, мебель, раковины)</option>
+            </select>
+        </div>
+
+        <div class="form-group full">
+            <label>Тип объекта</label>
+            <select id="type">
+                <option value="bathroom">Ванная / Душевая (Гидро + 3 слоя лака)</option>
+                <option value="floor">Пол жилой (3 слоя лака)</option>
+                <option value="wall">Стены (2 слоя лака)</option>
+            </select>
+        </div>
+
+        <div class="form-group full">
+            <label>Система</label>
+            <select id="system">
+                <option value="c2te">C2TE v2.2 (Быстрая матрица)</option>
+                <option value="lab">LAB BÉTON v2.2 (Крафт, +25% к времени)</option>
+            </select>
+        </div>
+    </div>
+
+    <button class="settings-toggle" onclick="toggleSettings()">⚙️ Коммерция и цены (GEL)</button>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Маржа студии (%)</label>
+                <input type="number" id="set_margin" value="25">
+            </div>
+            <div class="form-group">
+                <label>Надбавка <10м² (GEL)</label>
+                <input type="number" id="set_minorder" value="200">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Ставка мастера/день</label>
+                <input type="number" id="set_dayrate" value="180">
+            </div>
+            <div class="form-group">
+                <label>Норма (м²/день)</label>
+                <input type="number" id="set_prod" value="12">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>База Смесь (м²)</label>
+                <input type="number" id="set_base" value="37">
+            </div>
+            <div class="form-group">
+                <label>Лак (м² / 1 слой)</label>
+                <input type="number" id="set_varnish" value="7.5">
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+            <div class="val" id="out_days">0</div>
+            <div class="lbl">Дней (Тех. + Работа)</div>
+        </div>
+        <div class="stat-card">
+            <div class="val" id="out_matcost">0 ₾</div>
+            <div class="lbl">Себестоимость Мат.</div>
+        </div>
+        <div class="stat-card">
+            <div class="val" id="out_laborcost">0 ₾</div>
+            <div class="lbl">ФОТ Мастера</div>
+        </div>
+        <div class="stat-card">
+            <div class="val" id="out_margin">0 ₾</div>
+            <div class="lbl">Прибыль (Маржа)</div>
+        </div>
+    </div>
+
+    <div class="warning" id="tempWarning">
+        ⚠️ <strong>Температура > 22°C!</strong> Включен градиентный расход ретардера. В/Ц будет падать, жизнь смеси сокращена.
+    </div>
+
+    <div class="materials-box" id="matBox">
+        <h2 style="font-size: 14px; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Закупочная ведомость (Примерно)</h2>
+        <p>Сухая база (База + F2): <span id="mat_base_kg">0 кг</span></p>
+        <p>Сухой финиш (F3): <span id="mat_fin_kg">0 кг</span></p>
+        <p>Жидкий Латекс: <span id="mat_latex_l">0 л</span></p>
+        <p>Полиуретановый Лак: <span id="mat_varnish_l">0 л</span></p>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">*Сформировано с учетом потерь 10%</p>
+    </div>
+</div>
+
+<div class="sticky-footer">
+    <div class="price-block">
+        <div class="price-title">ИТОГО КЛИЕНТУ</div>
+        <div class="price-value" id="final_total">0 ₾</div>
+        <div class="price-per-m2" id="final_m2">0 ₾ / м²</div>
+    </div>
+    <button class="btn-calc" onclick="calculate()">Считать</button>
+</div>
+
+<script>
+    function toggleSettings() {
+        const panel = document.getElementById('settingsPanel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function calculate() {
+        // 1. Вводные данные
+        const area = parseFloat(document.getElementById('area').value);
+        const temp = parseFloat(document.getElementById('temp').value);
+        const complexity = parseFloat(document.getElementById('complexity').value);
+        const type = document.getElementById('type').value;
+        const system = document.getElementById('system').value;
+
+        // 2. Коммерческие настройки
+        const marginRate = parseFloat(document.getElementById('set_margin').value) / 100 + 1; // e.g. 1.25
+        const minOrderPenalty = parseFloat(document.getElementById('set_minorder').value);
+        const dayRate = parseFloat(document.getElementById('set_dayrate').value);
+        const productivity = parseFloat(document.getElementById('set_prod').value); // m2 per day
+        
+        // Цены
+        const priceBaseMat = parseFloat(document.getElementById('set_base').value);
+        const priceVarnish = parseFloat(document.getElementById('set_varnish').value);
+        const priceHydro = 10; // GEL
+        const priceRetarder = 0.5; // Base price for retarder per m2
+
+        // 3. Логика Объекта
+        let techDays = 0;
+        let layersVarnish = 2;
+        let hasHydro = false;
+
+        if (type === 'bathroom') { techDays = 11; layersVarnish = 3; hasHydro = true; } 
+        else if (type === 'floor') { techDays = 7; layersVarnish = 3; hasHydro = false; } 
+        else if (type === 'wall') { techDays = 5; layersVarnish = 2; hasHydro = false; }
+
+        // 4. Логика Времени (Дни)
+        // Реальные дни = Берем максимум между технологическими паузами и площадью поделенной на выработку
+        let activeDays = Math.ceil(area / productivity);
+        let realDays = Math.max(techDays, activeDays);
+
+        // LAB BETON штраф к работе (+25% к ФОТ мастера)
+        let systemLaborMultiplier = (system === 'lab') ? 1.25 : 1.0;
+
+        // Расчет ФОТ (С учетом дней, сложности стен и штрафа системы)
+        let totalLabor = (realDays * dayRate) * complexity * systemLaborMultiplier;
+
+        // 5. Логика Материалов
+        // Физика лака (первый слой впитывается больше, 3 слоя = коэфф 1.15)
+        let varnishFactor = (layersVarnish === 3) ? 1.15 : 1.1;
+        let totalVarnishCost = layersVarnish * priceVarnish * area * varnishFactor;
+
+        // Температурный градиент
+        let retarderTotal = 0;
+        const warningBox = document.getElementById('tempWarning');
+        if (temp > 22) {
+            let tempFactor = (temp - 22) / 10; // +10% за каждый градус свыше 22
+            retarderTotal = area * priceRetarder * (1 + tempFactor);
+            warningBox.style.display = 'block';
+        } else {
+            warningBox.style.display = 'none';
+        }
+
+        let totalMat = (priceBaseMat * area) + totalVarnishCost + retarderTotal;
+
+        // Гидроизоляция
+        if (hasHydro) {
+            totalMat += (priceHydro * 0.5) * area;   // 50% мат
+            totalLabor += (priceHydro * 0.5) * area; // 50% работа
+        }
+
+        // 6. Итоговая Коммерция
+        let baseCost = totalMat + totalLabor;
+        let finalCost = baseCost * marginRate;
+
+        // Штраф за мелкий объект
+        if (area < 10) {
+            finalCost += minOrderPenalty;
+        }
+
+        let profit = finalCost - baseCost;
+        let perM2 = finalCost / area;
+
+        // 7. Расчет закупки (Физика объемов) - с запасом 10%
+        let kgBase = Math.ceil(area * 1.5 * 1.1);
+        let kgFin = Math.ceil(area * 0.5 * 1.1);
+        let literLatex = Math.ceil(area * 0.65 * 1.1);
+        let literVarnish = (area * 0.1 * layersVarnish * varnishFactor * 1.1).toFixed(1);
+
+        // 8. Вывод в UI
+        document.getElementById('statsGrid').style.display = 'grid';
+        document.getElementById('matBox').style.display = 'block';
+
+        document.getElementById('out_days').innerText = realDays;
+        document.getElementById('out_matcost').innerText = Math.round(totalMat) + " ₾";
+        document.getElementById('out_laborcost').innerText = Math.round(totalLabor) + " ₾";
+        document.getElementById('out_margin').innerText = Math.round(profit) + " ₾";
+
+        document.getElementById('mat_base_kg').innerText = kgBase + " кг";
+        document.getElementById('mat_fin_kg').innerText = kgFin + " кг";
+        document.getElementById('mat_latex_l').innerText = literLatex + " л";
+        document.getElementById('mat_varnish_l').innerText = literVarnish + " л";
+
+        document.getElementById('final_total').innerText = Math.round(finalCost) + " ₾";
+        document.getElementById('final_m2').innerText = Math.round(perM2) + " ₾ / м²";
+    }
+</script>
+
+</body>
+</html>
